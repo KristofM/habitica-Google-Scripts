@@ -24,6 +24,8 @@
 *               2020-01-29: 
 *                    ADDED:   header DOC
 *                    ADDED:   changelog
+*                    ADDED:   Use the Project Properties keysets to store 
+*                             your habitica ID and Token (optional)
 *                    CHANGED: Cleanup code
 *                    CHANGED: Add more logging
 *                    CHANGED: Rename function PitiGearAndBuffs to buffParty
@@ -33,8 +35,7 @@
 *
 \*********************************************************************************/
 
-
-// Habitica API tokens
+// ENTER YOUR HABITICA API TOKENS HERE
 // Do not share them publicly under any circumstances!
 var habId = "habitica-id";
 var habToken = "habitica-token";
@@ -43,6 +44,10 @@ var habToken = "habitica-token";
 // (this is to avoid the servers being overloaded)
 var sleepTime = 10000
 
+if(PropertiesService.getScriptProperties().getProperty('habid') != null && PropertiesService.getScriptProperties().getProperty('habtoken')!=null){
+  habId = PropertiesService.getScriptProperties().getProperty('habid');
+  habToken = PropertiesService.getScriptProperties().getProperty('habtoken');
+}
 
 /********************************************************\
  Automatically join party quests
@@ -292,4 +297,4 @@ function heal() {
   } else {
    console.log("enough health, not buying a potion"); 
   }
- }
+}
