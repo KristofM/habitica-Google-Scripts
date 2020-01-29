@@ -1,18 +1,18 @@
 /*********************************************************************************\
 * @Title:       Habitica Automation Scripts
 *
-* @Description: Google Apps Scripts to automate some of the Habitica tasks
-*               This file contains 4 scripts in total:
-*                 - scheduleJoinQuest: automatically accept party invitation for quests
+* @Description: Google Apps Script to automate some of the Habitica tasks
+*               This file contains 4 functions in total:
+*                 - scheduleJoinQuest: accept party invitation for quests
 *                 - buffParty: automatically casts a skill for the party
 *                 - buyAllArmoire: buys armoire with excess gold
 *                 - heal: buys a health potion if necessary
 *
-*               Each function works independently from another. If you run one function,
-*               the other functions will not run. As a result, your should schedule
-*               each of the functions that you want to run separately as a trigger in 
-*               Google Apps Script. (functions can remain in one file but still trigger
-*               individually)
+*               Each function works independently from another. If you run one 
+*               function, the other functions will not run. As a result, you should 
+*               schedule each of the functions that you want to run separately as 
+*               a trigger in Google Apps Script. (functions can remain in one file 
+*               but still be triggered individually)
 *
 * @Author:      KristofM - kristof@habitgrowth.com
 *
@@ -35,6 +35,7 @@
 *
 \*********************************************************************************/
 
+
 // ENTER YOUR HABITICA API TOKENS HERE
 // Do not share them publicly under any circumstances!
 var habId = "habitica-id";
@@ -48,6 +49,15 @@ if(PropertiesService.getScriptProperties().getProperty('habid') != null && Prope
   habId = PropertiesService.getScriptProperties().getProperty('habid');
   habToken = PropertiesService.getScriptProperties().getProperty('habtoken');
 }
+
+
+
+
+
+
+
+
+
 
 /********************************************************\
  Automatically join party quests
@@ -81,7 +91,15 @@ function scheduleJoinQuest() {
    } else {
      console.log("no open quest invitation found");
    }
- }
+} // END function scheduleJoinQuest
+
+
+
+
+
+
+
+
 
 
 /********************************************************\
@@ -120,18 +138,17 @@ function buffParty() {
   var headForBuff = "";
   var weaponForBuff = "";
   var shieldForBuff = "";
+  
+  // check user mana and calculate maximum number of buffs we can do
+  var response = UrlFetchApp.fetch("https://habitica.com/api/v3/user", paramsTemplate);
+  var user = JSON.parse(response);
+  var maxNumberOfBuffs = parseInt((user.data.stats.mp - manaBuffer)/25); //20-Wizard(Valorous Presence) 25-Rogue(ToolsOfTheTrade)
     
   // save initial gear
   var head = user.data.items.gear.equipped.head; 
   var armor = user.data.items.gear.equipped.armor;
   var weapon = user.data.items.gear.equipped.weapon;
   var shield = user.data.items.gear.equipped.shield;
-  
-  // check user mana and calculate maximum number of buffs we can do
-  var response = UrlFetchApp.fetch("https://habitica.com/api/v3/user", paramsTemplate);
-  var user = JSON.parse(response);
-  var maxNumberOfBuffs = parseInt((user.data.stats.mp - manaBuffer)/25); //20-Wizard(Valorous Presence) 25-Rogue(ToolsOfTheTrade)
-   
 
   if (maxNumberOfBuffs > 0) {
     console.log("User has "+ parseInt(user.data.stats.mp) + " mana, script will cast " + skillId + " " + maxNumberOfBuffs + " times.");
@@ -203,7 +220,16 @@ function buffParty() {
     }
 */     
    } // end maxNumberOfBuffs
-  }
+} // END buffParty
+
+
+
+
+
+
+
+
+
 
 /********************************************************\
  Buy as much armoire as possible with excess gold
@@ -256,7 +282,16 @@ function buyAllArmoire() {
       Utilities.sleep(sleepTime);
     }
   } // end maxNumberOfarmoires  > 0
- }
+} // END buyAllArmoire
+
+
+
+
+
+
+
+
+
 
 /********************************************************\
  Automatically heal by buying a potion if health dips
@@ -297,4 +332,4 @@ function heal() {
   } else {
    console.log("enough health, not buying a potion"); 
   }
-}
+} // END heal
