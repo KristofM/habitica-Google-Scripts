@@ -85,12 +85,12 @@ function scheduleJoinQuest() {
   
   if ((party.data.quest.key != undefined) && (party.data.quest.active != true) && (party.data.quest.members[habId] == undefined)){
     
-    console.log("There's an outstanding quest invitation, joining...");
+    console.info("There's an outstanding quest invitation, joining...");
     
     UrlFetchApp.fetch("https://habitica.com/api/v3/groups/party/quests/accept", paramsPost)
     
   } else {
-    console.log("no open quest invitation found");
+    console.info("no open quest invitation found");
   }
 } // END function scheduleJoinQuest
 
@@ -148,9 +148,9 @@ function buffParty() {
   var shield = user.data.items.gear.equipped.shield;
   
   if (maxNumberOfBuffs < 1) {
-    console.log("User does not have enough mana to cast "+skillId+". Minimum mana needed is " + (curMana + skillCost) + ", user has "+ curMana);
+    console.info("User does not have enough mana to cast "+skillId+". Minimum mana needed is " + (curMana + skillCost) + ", user has "+ curMana);
   }else{
-    console.log("User has "+ parseInt(user.data.stats.mp) + " mana, script will cast " + skillId + " " + maxNumberOfBuffs + " times.");
+    console.info("User has "+ parseInt(user.data.stats.mp) + " mana, script will cast " + skillId + " " + maxNumberOfBuffs + " times.");
     
     /*
     // EQUIP TEMP GEAR
@@ -181,12 +181,12 @@ function buffParty() {
     
     // cast buff multiple times
     for (var i = 0; i < maxNumberOfBuffs; i++) {
-      console.log("casting " + skillId + "...");
+      console.info("casting " + skillId + "...");
       var user = Json.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/class/cast/" + skillId, paramsPost)); 
       if(!user.success){
         throw("[ERROR] Unable to cast " + skillId);
       } else {
-        console.log(skillId + " successfully cast");
+        console.info(skillId + " successfully cast");
       }
       Utilities.sleep(sleepTime);
     }
@@ -196,7 +196,7 @@ function buffParty() {
     if(!user.success){
       throw("[ERROR] Unable to retrieve user profile");
     }else{
-      console.log("User has now " + user.data.stats.mp + " mana");
+      console.info("User has now " + user.data.stats.mp + " mana");
     }
     
     /*
@@ -249,16 +249,16 @@ function buyAllArmoire() {
   var maxNumberOfarmoires = parseInt((curGold - goldbuffer)/100);
   
   if (maxNumberOfarmoires > 0) {
-    console.log("User has "+ curGold + " gold, script will by armoire " + maxNumberOfarmoires + " times.");
+    console.info("User has "+ curGold + " gold, script will by armoire " + maxNumberOfarmoires + " times.");
     
     for (var i = 0; i < maxNumberOfarmoires; i++) { 
       var result = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/buy-armoire", paramsPost));
       if(!result.success){("[ERROR] Unable to buy armoire" + result);}  
       
       if (result.data.armoire.type == 'food') {
-        console.log("You gained " + result.data.armoire.dropText + ".")
+        console.info("You gained " + result.data.armoire.dropText + ".")
       } else {
-        console.log("You gained " + result.data.armoire.value + " " + result.data.armoire.type + ".")    
+        console.info("You gained " + result.data.armoire.value + " " + result.data.armoire.type + ".")    
       }
       Utilities.sleep(sleepTime);
     } // end loop
@@ -268,10 +268,10 @@ function buyAllArmoire() {
     if(!user.success){
       throw("[ERROR] Unable to retrieve user profile");
     }else{
-      console.log("User has now " + user.data.stats.gp + " gold");
+      console.info("User has now " + user.data.stats.gp + " gold");
     }    
   }else{
-    console.log("User does not have enough excess gold to buy any armoires. Minimum gold needed is " + (goldbuffer + 100) + ", user has " + curGold);
+    console.info("User does not have enough excess gold to buy any armoires. Minimum gold needed is " + (goldbuffer + 100) + ", user has " + curGold);
   }// end maxNumberOfarmoires  > 0
 } // END buyAllArmoire
 
@@ -305,10 +305,10 @@ function heal() {
     }else{  
       var user = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user", paramsGet));
       if(!user.success){throw("[ERROR] Unable to retrieve user profile. " + user);}    
-      console.log("Bought potion, new health: " + user.data.stats.hp);
-      console.log(result.message)   
+      console.info("Bought potion, new health: " + user.data.stats.hp);
+      console.info(result.message)   
     }
   } else {
-    console.log("User health (" + curHealth + " hp) is above treshold ("+minHealth+" hp), not buying a potion"); 
+    console.info("User health (" + curHealth + " hp) is above treshold ("+minHealth+" hp), not buying a potion"); 
   } // end if(curHealth < minHealth){
 } // END heal
