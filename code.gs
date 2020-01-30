@@ -182,7 +182,7 @@ function buffParty() {
     // cast buff multiple times
     for (var i = 0; i < maxNumberOfBuffs; i++) {
       console.info("casting " + skillId + "...");
-      var user = Json.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/class/cast/" + skillId, paramsPost)); 
+      var user = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/class/cast/" + skillId, paramsPost)); 
       if(!user.success){
         throw("[ERROR] Unable to cast " + skillId);
       } else {
