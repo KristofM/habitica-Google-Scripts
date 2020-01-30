@@ -24,6 +24,8 @@
 *               2020-01-30:
 *                    ADDED:   proper error handling
 *                    ADDED:   proper logging for all functions
+*                    ADDED:   optionally equip gear before buffing the party
+*
 *               2020-01-29: 
 *                    ADDED:   header DOC
 *                    ADDED:   changelog
@@ -106,8 +108,8 @@ function scheduleJoinQuest() {
 /********************************************************\
 Buff the party
 
-Optional: leaves a mana buffer in the account 
-that is never spent
+Optional: leaves a mana buffer in the account that is 
+never spent
 
 Room for improvement: 
 * only buff party if quest is running           
@@ -127,13 +129,19 @@ function buffParty() {
   var skillId = "toolsOfTrade"
   var skillCost = 25; //20 for Wizard(Valorous Presence), 25 for Rogue(ToolsOfTheTrade)
   
+  var equipGearForBuff = false; // set to true if you want to equip special gear for buffing the party.
+  
   // set the gear you want to equip here
   // use the "Data Display Tool" to find the best gear to equip
   // https://oldgods.net/habitrpg/habitrpg_user_data_display.html
-  var armorForBuff = "armor_rogue_5";
-  var headForBuff = "";
-  var weaponForBuff = "";
-  var shieldForBuff = "";
+  var arrGearForBuff = {};
+  arrGearForBuff["head"] = "head_rogue_5";
+  arrGearForBuff["armor"] = "armor_rogue_5";
+  arrGearForBuff["weapon"] = "weapon_special_2";
+  arrGearForBuff["shield"] = "shield_special_goldenknight";
+  arrGearForBuff["back"] = "back_special_aetherCloak";
+  arrGearForBuff["eyewear"] = "eyewear_armoire_goofyGlasses";
+  arrGearForBuff["headAccessory"] = "headAccessory_armoire_gogglesOfBookbinding";
   
   // check user mana and calculate maximum number of buffs we can do
   var user = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user", paramsGet));
@@ -141,43 +149,37 @@ function buffParty() {
   var maxNumberOfBuffs = parseInt((user.data.stats.mp - manaBuffer)/skillCost); 
   var curMana = parseInt(user.data.stats.mp)
   
+  var sleepLoop = 200; // time in milliseconds
+  
   // save initial gear
-  var head = user.data.items.gear.equipped.head; 
-  var armor = user.data.items.gear.equipped.armor;
-  var weapon = user.data.items.gear.equipped.weapon;
-  var shield = user.data.items.gear.equipped.shield;
+  var arrCurGear = {};
+  arrCurGear["head"] = user.data.items.gear.equipped.head; 
+  arrCurGear["armor"] = user.data.items.gear.equipped.armor;
+  arrCurGear["weapon"] = user.data.items.gear.equipped.weapon;
+  arrCurGear["shield"] = user.data.items.gear.equipped.shield;
+  arrCurGear["back"] = user.data.items.gear.equipped.back;
+  arrCurGear["eyewear"] = user.data.items.gear.equipped.eyewear;
+  arrCurGear["headAccessory"] = user.data.items.gear.equipped.headAccessory;
   
   if (maxNumberOfBuffs < 1) {
     console.info("User does not have enough mana to cast "+skillId+". Minimum mana needed is " + (curMana + skillCost) + ", user has "+ curMana);
   }else{
     console.info("User has "+ parseInt(user.data.stats.mp) + " mana, script will cast " + skillId + " " + maxNumberOfBuffs + " times.");
     
-    /*
-    // EQUIP TEMP GEAR
-    if (user.data.items.gear.equipped.head !== "head_special_2") {
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/head_special_2", params);
-    head = "head_special_2"; 
-    Utilities.sleep(200);
+    if(equipGearForBuff){
+    // Equip temp gear
+      for (var key in arrGearForBuff) {
+        var result = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/" + arrGearForBuff[key], paramsPost)); 
+        
+        if(!result.success){
+          throw("[ERROR] Unable to equip " + arrGearForBuff[key] + " as " + key + " gear");
+          throw("[ERROR] " + result.message);
+        } else {
+          console.info("Equipped "+ arrGearForBuff[key] + " as " + key + " gear");
+        }
+        Utilities.sleep(sleepLoop);
+      }  
     }
-    
-    if (user.data.items.gear.equipped.armor !== "armor_rogue_5"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/armor_rogue_5", params);
-    armor = "armor_special_finnedOceanicArmor";
-    Utilities.sleep(200);
-    }
-    
-    if (user.data.items.gear.equipped.weapon !== "weapon_warrior_6"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/weapon_warrior_6", params);
-    weapon = "weapon_warrior_6";
-    Utilities.sleep(200);
-    }
-    
-    if (user.data.items.gear.equipped.shield !== "shield_special_lootBag"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/shield_special_lootBag", params);
-    shield = "shield_special_lootBag";
-    Utilities.sleep(200);
-    }
-    */ 
     
     // cast buff multiple times
     for (var i = 0; i < maxNumberOfBuffs; i++) {
@@ -196,31 +198,24 @@ function buffParty() {
     if(!user.success){
       throw("[ERROR] Unable to retrieve user profile");
     }else{
-      console.info("User has now " + user.data.stats.mp + " mana");
+      console.info("User has now " + parseInt(user.data.stats.mp) + " mana");
     }
     
-    /*
-    // change battle gear a second time   
-    if (head !== "head_special_2") {
-    //   UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/head_special_2", params);
-    Utilities.sleep(200);
+    if(equipGearForBuff){
+      // Equip original gear again
+      for (var key in arrCurGear) {
+        var result = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/" + arrCurGear[key], paramsPost)); 
+        
+        if(!result.success){
+          throw("[ERROR] Unable to equip " + arrCurGear[key] + " as " + key + " gear");
+          throw("[ERROR] " + result.message);
+        } else {
+          console.info("Equipped "+ arrCurGear[key] + " as " + key + " gear");
+        }
+        Utilities.sleep(sleepLoop);
+      }   
     }
     
-    if (armor !== "armor_special_2"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/armor_special_2", params);
-    Utilities.sleep(200);
-    }
-    
-    if (weapon !== "weapon_special_nomadsScimitar"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/weapon_special_nomadsScimitar", params);
-    Utilities.sleep(200);
-    }
-    
-    if (shield !== "shield_special_wintryMirror"){
-    UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/shield_special_wintryMirror", params);
-    Utilities.sleep(200);
-    }
-    */ 
   }// end maxNumberOfBuffs > 0
 } // END buffParty
 
