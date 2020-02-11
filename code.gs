@@ -21,6 +21,9 @@
 * @HowToUse:    https://habitica.fandom.com/wiki/Google_Apps_Script
 *
 * @Changelog:
+*               2020-02-11:
+*                    ADDED:   new function: exportQuestParticipants()
+*
 *               2020-01-30:
 *                    ADDED:   proper error handling
 *                    ADDED:   proper logging for all functions
@@ -307,3 +310,78 @@ function heal() {
     console.info("User health (" + curHealth + " hp) is above treshold ("+minHealth+" hp), not buying a potion"); 
   } // end if(curHealth < minHealth){
 } // END heal
+
+
+
+
+
+
+
+
+
+
+/********************************************************\
+Checks if a quest if running and exports the participants
+\********************************************************/
+function exportQuestParticipants(){
+  var logToConsole = true;
+  
+  var user; // holds the user info
+  var party; //holds the party info
+  var partyMembers; // holds the party members
+  var quest; // holds the quest info
+  var memberList = []; // holds the party member info and quest participation
+  
+  var objUser = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user", paramsGet));
+  if(!objUser.success){throw("[ERROR] Unable to retrieve user profile. " + objUser);}  
+  user = objUser.data;
+  
+  var objParty = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/groups/party", paramsGet));
+  if(!objParty.success){throw("[ERROR] Unable to retrieve party info. " + objParty);}  
+  party = objParty.data;
+  
+  var objMembers = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/groups/party/members", paramsGet));
+  if(!objMembers.success){throw("[ERROR] Unable to retrieve members info. " + objMembers);}  
+  partyMembers = objMembers.data;
+  
+  quest = party.quest;
+  
+  if(!quest.active){
+   console.info("There is currently no quest running"); 
+   return;
+  }
+  
+  // quest is running
+  console.info("Quest running: "+quest.key);
+  
+  // enrich party member list with quest participance
+  for (var i = 0; i < partyMembers.length; i++) {
+    var member = partyMembers[i];
+    if(quest.members.hasOwnProperty(member.id)){
+      member.participating = true;
+    } else {
+      member.participating = false;
+    }
+    
+    memberList.push({name: member.profile.name, username: member.auth.local.username, participating: member.participating});
+  } // end loop
+  
+  Array.prototype.sortOn = function(key){
+    this.sort(function(a, b){
+      if(a[key].toLowerCase() < b[key].toLowerCase()){
+        return -1;
+      }else if(a[key].toLowerCase() > b[key].toLowerCase()){
+        return 1;
+      }
+      return 0;
+    });
+  }
+  
+  memberList.sortOn('name');
+  
+  if(logToConsole){
+    for (var i = 0; i < memberList.length; i++) {
+      console.info(memberList[i].name + " (@" + memberList[i].username + ")" + (memberList[i].participating? " is participating":" is not participating") );  
+    }
+  }
+}
