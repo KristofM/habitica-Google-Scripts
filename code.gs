@@ -381,7 +381,10 @@ function exportQuestParticipants(){
   
   if(logToConsole){
     for (var i = 0; i < memberList.length; i++) {
-      console.info(memberList[i].name + " (@" + memberList[i].username + ")" + (memberList[i].participating? " is participating":" is not participating") );  
+      console.info(memberList[i].name + " (@" + memberList[i].username + ")" + (memberList[i].participating? " is participating":" is NOT participating") );  
     }
+    var numParticipators = Object.keys(quest.members).length;
+    var numNonParticipators = Object.keys(partyMembers).length - numParticipators;
+    console.info("Summary: " + numParticipators + " members participating in quest, " + numNonParticipators + " members not participating.");
   }
 }
