@@ -21,6 +21,9 @@
 * @HowToUse:    https://habitica.fandom.com/wiki/Google_Apps_Script
 *
 * @Changelog:
+*               2020-02-12:
+*                    ADDED:   new function: startQuest()
+*
 *               2020-02-11:
 *                    ADDED:   new function: exportQuestParticipants()
 *
@@ -170,7 +173,7 @@ function buffParty() {
     console.info("User has "+ parseInt(user.data.stats.mp) + " mana, script will cast " + skillId + " " + maxNumberOfBuffs + " times.");
     
     if(equipGearForBuff){
-    // Equip temp gear
+      // Equip temp gear
       for (var key in arrGearForBuff) {
         var result = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/user/equip/equipped/" + arrGearForBuff[key], paramsPost)); 
         
@@ -347,8 +350,8 @@ function exportQuestParticipants(){
   quest = party.quest;
   
   if(!quest.active){
-   console.info("There is currently no quest running"); 
-   return;
+    console.info("There is currently no quest running"); 
+    return;
   }
   
   // quest is running
@@ -386,5 +389,66 @@ function exportQuestParticipants(){
     var numParticipators = Object.keys(quest.members).length;
     var numNonParticipators = Object.keys(partyMembers).length - numParticipators;
     console.info("Summary: " + numParticipators + " members participating in quest, " + numNonParticipators + " members not participating.");
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/********************************************************\
+Checks if a quest is open and starts it
+\********************************************************/
+function startQuest(){
+  
+  var party; //holds the party info
+  var quest; // holds the quest info
+  
+  var objParty = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/groups/party", paramsGet));
+  if(!objParty.success){throw("[ERROR] Unable to retrieve party info. " + objParty);}  
+  party = objParty.data;
+  
+  quest = party.quest;
+  
+  // A quest has 3 possible states:
+  // - active: a quest is currently running
+  // - pending: quest has been started and is open for members to join
+  // - none: there's no quest running, nor has one opened up for 
+  
+  if(quest.active){ 
+    // quest is active (=running)
+    console.info("No action: quest "+quest.key+" is already running");
+    return;
+  }
+  
+  if(quest.key == undefined){
+    // there is no quest
+    console.info("No action: no quest active, nor pending");
+    return;
+  }
+  
+  // quest is pending, start it
+  console.info("Quest "+quest.key+" is pending, it will now be started");
+  
+  var objQuest = JSON.parse(UrlFetchApp.fetch("https://habitica.com/api/v3/groups/party/quests/force-start", paramsPost));
+  if(!objQuest.success){throw("[ERROR] Unable to start quest. " + objQuest);}  
+  quest = objQuest.data;
+  
+  // Check if quest has sucessfully started
+  if(quest.active){
+    console.info("Succesfully started quest "+quest.key);
+  }else{
+    throw("[ERROR] Unknown error has occurred. " + quest);
   }
 }
